@@ -3,8 +3,7 @@ import { Contract } from "@ethersproject/contracts";
 import { getDefaultProvider } from "@ethersproject/providers";
 import React, { useEffect, useState } from "react";
 
-import { Body, Button, Header, Image, Link } from "./components";
-import logo from "./ethereumLogo.png";
+import { Body, Button, Header, Link } from "./components";
 import useWeb3Modal from "./hooks/useWeb3Modal";
 
 import { addresses, abis } from "@project/contracts";
@@ -86,19 +85,14 @@ function App() {
         <WalletButton provider={provider} loadWeb3Modal={loadWeb3Modal} logoutOfWeb3Modal={logoutOfWeb3Modal} />
       </Header>
       <Body>
-        <Image src={logo} alt="react-logo" />
         <p>
-          Edit <code>packages/react-app/src/App.js</code> and save to reload.
+          Hello! 
         </p>
         {/* Remove the "hidden" prop and open the JavaScript console in the browser to see what this function does */}
-        <Button hidden onClick={() => readOnChainData()}>
+        <Button onClick={() => readOnChainData()}>
           Read On-Chain Balance
         </Button>
-        <Link href="https://ethereum.org/developers/#getting-started" style={{ marginTop: "8px" }}>
-          Learn Ethereum
-        </Link>
-        <Link href="https://reactjs.org">Learn React</Link>
-        <Link href="https://thegraph.com/docs/quick-start">Learn The Graph</Link>
+        <Link href="" style={{ marginTop: "8px" }}></Link>
       </Body>
     </div>
   );
