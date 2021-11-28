@@ -3,26 +3,11 @@ import { Contract } from "@ethersproject/contracts";
 import { getDefaultProvider } from "@ethersproject/providers";
 import React, { useEffect, useState } from "react";
 
-import { Body, Button, Header, Link } from "./components";
+import { Body, Button, Header, Link, SuperButton } from "./components";
 import useWeb3Modal from "./hooks/useWeb3Modal";
 
 import { addresses, abis } from "@project/contracts";
 import GET_TRANSFERS from "./graphql/subgraph";
-
-async function readOnChainData(account) {
-
-  console.log("user1: ", account);
-
-  // Should replace with the end-user wallet, e.g. Metamask
-  const defaultProvider = getDefaultProvider();
-  // Create an instance of an ethers.js Contract
-  // Read more about ethers.js on https://docs.ethers.io/v5/api/contract/contract/
-  const ceaErc20 = new Contract(addresses.ceaErc20, abis.erc20, defaultProvider);
-
-  // A pre-defined address that owns some CEAERC20 tokens
-  const tokenBalance = await ceaErc20.balanceOf(account);
-  console.log({ tokenBalance: tokenBalance.toString() });
-}
 
 function WalletButton({ provider, loadWeb3Modal, logoutOfWeb3Modal }) {
 
@@ -36,14 +21,11 @@ function WalletButton({ provider, loadWeb3Modal, logoutOfWeb3Modal }) {
           return;
         }
 
-        // Load the user's accounts.
         const accounts = await provider.listAccounts();
         setAccount(accounts[0]);
 
-        // Resolve the ENS name for the first account.
         const name = await provider.lookupAddress(accounts[0]);
 
-        // Render either the ENS name or the shortened account address.
         if (name) {
           setRendered(name);
         } else {
@@ -75,9 +57,12 @@ function WalletButton({ provider, loadWeb3Modal, logoutOfWeb3Modal }) {
 }
 
 function App() {
+  
   const { loading, error, data } = useQuery(GET_TRANSFERS);
   const [provider, loadWeb3Modal, logoutOfWeb3Modal] = useWeb3Modal();
   const [account, setAccount] = useState("");
+  const [balance, setBalance] = useState("?");
+  const [registered, setRegistered] = useState(false);
 
   useEffect(() => {
     async function fetchAccount() {
@@ -86,7 +71,6 @@ function App() {
           return;
         }
 
-        // Load the user's accounts.
         const accounts = await provider.listAccounts();
         setAccount(accounts[0]);
         
@@ -98,9 +82,40 @@ function App() {
     fetchAccount();
   }, [account, provider, setAccount]);
 
+  async function fetchBalance(account) {
+
+    try {
+      
+      // Probably should get it from useWeb3Modal({})[0]
+      const defaultProvider = getDefaultProvider(4);
+      
+      const ccToken = new Contract(addresses.cc, abis.CC, defaultProvider);
+      const tokenBalance = await ccToken.balanceOf(account);
+      const tokenBalanceFormatted = tokenBalance.toString() / 1000000000000000000;
+      console.log({ tokenBalance: tokenBalanceFormatted });
+      setBalance(tokenBalanceFormatted);
+      
+    } catch (err) {
+      setBalance(0);
+      console.error(err);
+    }
+  }
+  
+  async function register() {
+
+    try {
+      
+      setRegistered(true);
+      
+    } catch (err) {
+      setRegistered(false);
+      console.error(err);
+    }
+  }
+
   React.useEffect(() => {
     if (!loading && !error && data && data.transfers) {
-      console.log({ transfers: data.transfers });
+      // console.log({ transfers: data.transfers });
     }
   }, [loading, error, data]);
 
@@ -111,12 +126,20 @@ function App() {
       </Header>
       <Body>
         <p>
-           {account}
+          Your CC balance: {balance}
         </p>
-        {/* Remove the "hidden" prop and open the JavaScript console in the browser to see what this function does */}
-        <Button onClick={() => readOnChainData(account)}>
+        {registered === true &&
+        <p>
+          You're properly registered. Yay!
+        </p>
+        }
+
+        <SuperButton onClick={() => fetchBalance(account)}>
           Check my balance
-        </Button>
+        </SuperButton>
+        <SuperButton onClick={() => register()}>
+          Register
+        </SuperButton>
         <Link href="" style={{ marginTop: "8px" }}></Link>
       </Body>
     </div>
