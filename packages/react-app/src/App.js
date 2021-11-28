@@ -2,7 +2,7 @@ import { useQuery } from "@apollo/react-hooks";
 import { Contract } from "@ethersproject/contracts";
 import { getDefaultProvider } from "@ethersproject/providers";
 import React, { useEffect, useState } from "react";
-
+// import { ContractFactory } from 'ethers';
 import { Body, Button, Header, Link, SuperButton } from "./components";
 import useWeb3Modal from "./hooks/useWeb3Modal";
 
@@ -63,6 +63,7 @@ function App() {
   const [account, setAccount] = useState("");
   const [balance, setBalance] = useState("?");
   const [registered, setRegistered] = useState(false);
+  const [txBeingSent, setTxBeingSent] = useState(false);
 
   useEffect(() => {
     async function fetchAccount() {
@@ -88,7 +89,7 @@ function App() {
       
       // Probably should get it from useWeb3Modal({})[0]
       const defaultProvider = getDefaultProvider(4);
-      
+
       const ccToken = new Contract(addresses.cc, abis.CC, defaultProvider);
       const tokenBalance = await ccToken.balanceOf(account);
       const tokenBalanceFormatted = tokenBalance.toString() / 1000000000000000000;
@@ -105,11 +106,26 @@ function App() {
 
     try {
       
+      setTxBeingSent(true);
+
+      const signer = provider.getSigner(0);
+      const ccToken = new Contract(addresses.cc, abis.CC, signer);
+      const RegisterTx = await ccToken.register();
+
+      const receipt = await RegisterTx.wait();
+
+        if (receipt.status === 0) {
+            throw new Error("Failed");
+        }
+
       setRegistered(true);
       
     } catch (err) {
       setRegistered(false);
       console.error(err);
+    } finally {
+      setTxBeingSent(false);
+      fetchBalance(account);
     }
   }
 
@@ -128,6 +144,11 @@ function App() {
         <p>
           Your CC balance: {balance}
         </p>
+        {txBeingSent === true &&
+        <p>
+          Processing...
+        </p>
+        }
         {registered === true &&
         <p>
           You're properly registered. Yay!
