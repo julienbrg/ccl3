@@ -3,8 +3,6 @@ import WalletConnectProvider from "@walletconnect/web3-provider";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Web3Modal from "web3modal";
 
-// Enter a valid infura key here to avoid being rate limited
-// You can get a key for free at https://infura.io/register
 const INFURA_ID = "adb5255344b4647ee867204b0585f55fdb5f5de21329554b23a4584d4e2df40e";
 
 const NETWORK = "rinkeby";
@@ -14,8 +12,6 @@ function useWeb3Modal(config = {}) {
   const [autoLoaded, setAutoLoaded] = useState(false);
   const { autoLoad = true, infuraId = INFURA_ID, network = NETWORK } = config;
 
-  // Web3Modal also supports many other wallets.
-  // You can see other options at https://github.com/Web3Modal/web3modal
   const web3Modal = useMemo(() => {
     return new Web3Modal({
       network,
@@ -45,7 +41,6 @@ function useWeb3Modal(config = {}) {
     [web3Modal],
   );
 
-  // If autoLoad is enabled and the the wallet had been loaded before, load it automatically now.
   useEffect(() => {
     if (autoLoad && !autoLoaded && web3Modal.cachedProvider) {
       loadWeb3Modal();
